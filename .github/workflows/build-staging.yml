@@ -13,7 +13,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  build_push_image:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -22,11 +22,38 @@ jobs:
       # Checks out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v1
+  
+      - name: Docker Login
+        # You may pin to the exact commit or the version.
+        # uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+        uses: docker/login-action@v2.2.0
+        with:
+          # Server address of Docker registry. If not set then will default to Docker Hub
+          registry: ${{ secrets.ACR_NAME }}
+          # Username used to log against the Docker registry
+          username: ${{ secrets.ACR_LOGIN }}
+          # Password or personal access token used to log against the Docker registry
+          password: ${{ secrets.ACR_PASSWORD }}
+          
+      - name: build and push staging images
+        # You may pin to the exact commit or the version.
+        # uses: docker/build-push-action@0a97817b6ade9f46837855d676c4cca3a2471fc9
+        uses: docker/build-push-action@v4.2.1
+        with:
+          # Build's context is the set of files located in the specified PATH or URL
+          context: .
+          # Push is a shorthand for --output=type=registry
+          push: true
+          # List of tags
+          tags: ${{secrets.ACR_NAME}}/contoso-website:latest
+    
+      # Runs a single command using the runner's shell
       - name: Run a one-line script
         run: echo Hello, world!
 
-      # Runs a set of commands using the runners shell
+      # Runs a set of commands using the runner's shell
       - name: Run a multi-line script
         run: |
           echo Add other actions to build,
